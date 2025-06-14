@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuvisoft: The $1 Trillion Engineering OS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Neutrals (Background: #F5F5F4, Text: #1C1917, Accent: #0D9488) -->
+    <!-- Application Structure Plan: The SPA uses a thematic, top-down narrative structure, guiding the user from the high-level vision to the detailed execution strategy. It starts with the core $1T ambition, visualizes the market opportunity, explains the platform architecture through an interactive diagram, details the growth flywheels and strategic roadmap, and concludes with challenges/mitigation. This flow is more engaging than the report's linear format, using interactive elements like charts, clickable diagrams, and accordions to make complex information digestible and allow for user-driven exploration. A persistent top navigation enables non-linear access to key sections. -->
+    <!-- Visualization & Content Choices:
+        - Market Opportunity: Goal: Compare market sizes. Method: Interactive bar chart (Chart.js) to visually compare projected growth in key sectors, emphasizing the scale of the opportunity. Interaction: Hover for details. Justification: More impactful than a static table.
+        - OS Architecture: Goal: Organize complex components. Method: Interactive hub-and-spoke diagram (HTML/CSS) to show relationships between the core OS and its pillars. Interaction: Click a pillar to reveal details. Justification: Simplifies a complex system into an explorable visual model.
+        - Value Flywheels: Goal: Explain growth concepts. Method: Interactive cards (HTML/CSS). Interaction: Hover to reveal details. Justification: Breaks down abstract concepts into digestible, visually separated chunks.
+        - Roadmap: Goal: Show change over time. Method: Interactive timeline (HTML/CSS). Interaction: Click stages to see detailed strategies. Justification: Provides a clear, sequential view of the strategic path.
+        - Challenges: Goal: Organize and present solutions. Method: Tabbed accordion (HTML/CSS). Interaction: Click tabs and expand items. Justification: Organizes dense information neatly and allows users to focus on specific areas of concern without being overwhelmed.
+        -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F5F5F4; /* stone-100 */
+            color: #292524; /* stone-800 */
+        }
+        .nav-link {
+            transition: color 0.3s ease, border-bottom-color 0.3s ease;
+            border-bottom: 2px solid transparent;
+        }
+        .nav-link:hover, .nav-link.active {
+            color: #0D9488; /* teal-600 */
+            border-bottom-color: #0D9488;
+        }
+        .card-flip {
+            perspective: 1000px;
+        }
+        .card-flip-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        .card-flip:hover .card-flip-inner {
+            transform: rotateY(180deg);
+        }
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+        }
+        .card-back {
+            transform: rotateY(180deg);
+        }
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-in-out;
+        }
+        .chart-container { 
+            position: relative; 
+            width: 100%; 
+            max-width: 800px; 
+            margin-left: auto; 
+            margin-right: auto; 
+            height: 300px;
+            max-height: 40vh;
+        }
+        @media (min-width: 768px) { 
+            .chart-container { 
+                height: 450px; 
+            } 
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header & Navigation -->
+    <header id="header" class="bg-stone-100/80 backdrop-blur-md sticky top-0 z-50 shadow-sm">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex-shrink-0">
+                    <a href="#hero" class="text-2xl font-bold text-teal-600">Cuvisoft</a>
+                </div>
+                <nav class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="#opportunity" class="nav-link px-3 py-2 rounded-md text-sm font-medium">Opportunity</a>
+                        <a href="#architecture" class="nav-link px-3 py-2 rounded-md text-sm font-medium">Architecture</a>
+                        <a href="#flywheels" class="nav-link px-3 py-2 rounded-md text-sm font-medium">Value Flywheels</a>
+                        <a href="#roadmap" class="nav-link px-3 py-2 rounded-md text-sm font-medium">Roadmap</a>
+                        <a href="#challenges" class="nav-link px-3 py-2 rounded-md text-sm font-medium">Challenges</a>
+                    </div>
+                </nav>
+                <div class="md:hidden">
+                    <button id="mobile-menu-button" class="inline-flex items-center justify-center p-2 rounded-md text-stone-600 hover:text-teal-600 hover:bg-stone-200 focus:outline-none">
+                        <span class="sr-only">Open main menu</span>
+                        <div class="space-y-1">
+                            <span class="block w-6 h-0.5 bg-current"></span>
+                            <span class="block w-6 h-0.5 bg-current"></span>
+                            <span class="block w-4 h-0.5 bg-current"></span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div id="mobile-menu" class="md:hidden hidden">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="#opportunity" class="block nav-link px-3 py-2 rounded-md text-base font-medium">Opportunity</a>
+                <a href="#architecture" class="block nav-link px-3 py-2 rounded-md text-base font-medium">Architecture</a>
+                <a href="#flywheels" class="block nav-link px-3 py-2 rounded-md text-base font-medium">Value Flywheels</a>
+                <a href="#roadmap" class="block nav-link px-3 py-2 rounded-md text-base font-medium">Roadmap</a>
+                <a href="#challenges" class="block nav-link px-3 py-2 rounded-md text-base font-medium">Challenges</a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- Hero Section -->
+        <section id="hero" class="relative min-h-screen flex items-center justify-center text-center overflow-hidden bg-stone-50 py-20">
+            <div class="absolute inset-0 z-0">
+                <canvas id="hero-canvas"></canvas>
+            </div>
+            <div class="relative z-10 p-4">
+                <h1 class="text-4xl sm:text-5xl md:text-7xl font-extrabold tracking-tight text-stone-800">
+                    The <span class="text-teal-600">$1 Trillion</span> Engineering OS
+                </h1>
+                <p class="mt-6 max-w-2xl mx-auto text-lg md:text-xl text-stone-600">
+                    A research framework for Cuvisoft's transformation into the modular, intelligent, and interoperable backbone of industrial, scientific, and civilizational progress.
+                </p>
+                <a href="#opportunity" class="mt-10 inline-block bg-teal-600 text-white font-bold py-3 px-8 rounded-full text-lg hover:bg-teal-700 transition duration-300 transform hover:scale-105 shadow-lg">
+                    Explore the Framework
+                </a>
+            </div>
+        </section>
+
+        <!-- Section 1: The Opportunity Landscape -->
+        <section id="opportunity" class="py-20 sm:py-28 bg-white">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center max-w-3xl mx-auto">
+                    <h2 class="text-3xl sm:text-4xl font-bold tracking-tight text-stone-800">A New Market Category</h2>
+                    <p class="mt-4 text-lg text-stone-600">
+                        Cuvisoft's ambition extends beyond competing in existing markets. The goal is to converge Engineering Software, Industrial IoT, and SaaS to create a new, larger "Engineering OS" category. This chart visualizes the projected scale of these foundational markets.
+                    </p>
+                </div>
+                <div class="mt-12">
+                    <div class="chart-container">
+                        <canvas id="marketChart"></canvas>
+                    </div>
+                    <p class="text-center mt-4 text-sm text-stone-500">*Note: Market projections are based on aggregated data from multiple research sources.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: The Engineering OS Architecture -->
+        <section id="architecture" class="py-20 sm:py-28 bg-stone-50">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center max-w-3xl mx-auto">
+                    <h2 class="text-3xl sm:text-4xl font-bold tracking-tight text-stone-800">Core Architectural Pillars</h2>
+                    <p class="mt-4 text-lg text-stone-600">
+                        The Engineering OS is built on a foundation of interconnected pillars designed for adaptability, intelligence, and scale. Click on each pillar to explore its core concepts and strategic importance.
+                    </p>
+                </div>
+                <div class="mt-16 max-w-5xl mx-auto">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        <div id="pillar-details" class="p-6 bg-white rounded-lg shadow-lg md:col-span-2 lg:col-span-1 lg:row-span-2 flex flex-col justify-center min-h-[300px]">
+                            <h3 id="pillar-title" class="text-2xl font-bold text-teal-600">Select a Pillar</h3>
+                            <p id="pillar-description" class="mt-2 text-stone-600">Click on an architectural pillar to the right to see its detailed description, key strategies, and inherent challenges here.</p>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-8 md:col-span-2 lg:col-span-2">
+                            <div class="pillar-card p-6 bg-white rounded-lg shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer text-center" data-pillar="interoperability">
+                                <span class="text-4xl">↔️</span>
+                                <h4 class="mt-4 text-xl font-bold">Universal Interoperability</h4>
+                            </div>
+                            <div class="pillar-card p-6 bg-white rounded-lg shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer text-center" data-pillar="ai">
+                                <span class="text-4xl">💡</span>
+                                <h4 class="mt-4 text-xl font-bold">AI-Powered Systems</h4>
+                            </div>
+                             <div class="pillar-card p-6 bg-white rounded-lg shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer text-center" data-pillar="iiot">
+                                <span class="text-4xl">⚙️</span>
+                                <h4 class="mt-4 text-xl font-bold">IIoT Control Layer</h4>
+                            </div>
+                             <div class="pillar-card p-6 bg-white rounded-lg shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer text-center" data-pillar="suites">
+                                <span class="text-4xl">📦</span>
+                                <h4 class="mt-4 text-xl font-bold">100+ Integrated Suites</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Section 3: The Value Flywheels -->
+        <section id="flywheels" class="py-20 sm:py-28 bg-white">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center max-w-3xl mx-auto">
+                    <h2 class="text-3xl sm:text-4xl font-bold tracking-tight text-stone-800">Compounding Value Flywheels</h2>
+                    <p class="mt-4 text-lg text-stone-600">
+                        Achieving a $1T+ valuation requires mechanisms that generate exponential, self-reinforcing growth. Hover over each flywheel to understand how it accelerates value creation.
+                    </p>
+                </div>
+                <div class="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Flywheel 1: Cross-Disciplinary AI -->
+                    <div class="card-flip h-80">
+                        <div class="card-flip-inner shadow-lg rounded-xl">
+                            <div class="card-front bg-teal-500 text-white">
+                                <span class="text-5xl">🧠</span>
+                                <h3 class="mt-4 text-2xl font-bold">Cross-Disciplinary AI</h3>
+                            </div>
+                            <div class="card-back bg-white text-stone-700 text-left">
+                                <h4 class="font-bold text-teal-600">Mechanism:</h4>
+                                <p class="text-sm">Apply AI across siloed engineering domains via universal interoperability.</p>
+                                <h4 class="mt-2 font-bold text-teal-600">Compounding Effect:</h4>
+                                <p class="text-sm">More integrations lead to more data, better AI models, and new innovations, creating powerful network effects.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Flywheel 2: Edge Control -->
+                    <div class="card-flip h-80">
+                        <div class="card-flip-inner shadow-lg rounded-xl">
+                            <div class="card-front bg-slate-500 text-white">
+                                <span class="text-5xl">📡</span>
+                                <h3 class="mt-4 text-2xl font-bold">Edge Control</h3>
+                            </div>
+                            <div class="card-back bg-white text-stone-700 text-left">
+                                <h4 class="font-bold text-slate-600">Mechanism:</h4>
+                                <p class="text-sm">Enable distributed intelligence and real-time decision-making at the physical asset level.</p>
+                                <h4 class="mt-2 font-bold text-slate-600">Compounding Effect:</h4>
+                                <p class="text-sm">Drives operational efficiency (zero downtime, waste, defects), increasing customer value and platform adoption. More connected devices compound the value.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Flywheel 3: Government-Scale Adoption -->
+                    <div class="card-flip h-80">
+                        <div class="card-flip-inner shadow-lg rounded-xl">
+                            <div class="card-front bg-amber-500 text-white">
+                                <span class="text-5xl">🏛️</span>
+                                <h3 class="mt-4 text-2xl font-bold">Government-Scale Adoption</h3>
+                            </div>
+                            <div class="card-back bg-white text-stone-700 text-left">
+                                <h4 class="font-bold text-amber-600">Mechanism:</h4>
+                                <p class="text-sm">Establish the Engineering OS as critical national infrastructure through public sector partnerships.</p>
+                                <h4 class="mt-2 font-bold text-amber-600">Compounding Effect:</h4>
+                                <p class="text-sm">Creates a "gold standard" for security and reliability, driving private sector adoption and attracting a vast developer ecosystem.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Section 4: Strategic Roadmap -->
+        <section id="roadmap" class="py-20 sm:py-28 bg-stone-50">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center max-w-3xl mx-auto">
+                    <h2 class="text-3xl sm:text-4xl font-bold tracking-tight text-stone-800">Pathway to Platform Dominance</h2>
+                    <p class="mt-4 text-lg text-stone-600">
+                        The journey from a Minimum Viable Product to a global platform requires a phased strategy focusing on validation, ecosystem growth, and scalable monetization. Click each phase to view its strategic focus.
+                    </p>
+                </div>
+                <div class="mt-16">
+                    <!-- Timeline -->
+                    <div class="relative">
+                        <!-- Line -->
+                        <div class="absolute left-1/2 -ml-0.5 w-1 bg-teal-200 h-full"></div>
+                        <!-- Timeline Items -->
+                        <div class="space-y-16">
+                            <!-- Item 1 -->
+                            <div class="roadmap-item relative" data-phase="mvp">
+                                <div class="absolute left-1/2 -ml-4 w-8 h-8 rounded-full bg-teal-600 border-4 border-stone-50 z-10 flex items-center justify-center text-white font-bold">1</div>
+                                <div class="w-5/12 ml-auto p-6 bg-white rounded-lg shadow-lg cursor-pointer">
+                                    <h3 class="text-xl font-bold text-teal-700">Phase 1: MVP & Core Validation</h3>
+                                    <p class="mt-2 text-sm text-stone-500">Focus on solving one critical, cross-disciplinary problem to prove the core "OS" concept and compounding value thesis.</p>
+                                </div>
+                            </div>
+                             <!-- Item 2 -->
+                            <div class="roadmap-item relative" data-phase="ecosystem">
+                                <div class="absolute left-1/2 -ml-4 w-8 h-8 rounded-full bg-teal-600 border-4 border-stone-50 z-10 flex items-center justify-center text-white font-bold">2</div>
+                                <div class="w-5/12 mr-auto p-6 bg-white rounded-lg shadow-lg cursor-pointer">
+                                    <h3 class="text-xl font-bold text-teal-700">Phase 2: Ecosystem Cultivation</h3>
+                                    <p class="mt-2 text-sm text-stone-500">Build a thriving developer community with open APIs, quality SDKs, and transparent governance to co-create 100+ suites.</p>
+                                </div>
+                            </div>
+                            <!-- Item 3 -->
+                            <div class="roadmap-item relative" data-phase="scale">
+                                <div class="absolute left-1/2 -ml-4 w-8 h-8 rounded-full bg-teal-600 border-4 border-stone-50 z-10 flex items-center justify-center text-white font-bold">3</div>
+                                <div class="w-5/12 ml-auto p-6 bg-white rounded-lg shadow-lg cursor-pointer">
+                                    <h3 class="text-xl font-bold text-teal-700">Phase 3: Global Scale & Monetization</h3>
+                                    <p class="mt-2 text-sm text-stone-500">Expand internationally with a multi-sided platform revenue model, capturing value from users and third-party developers.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Details Pane -->
+                    <div id="roadmap-details" class="mt-12 p-8 bg-white rounded-lg shadow-inner max-w-4xl mx-auto border border-stone-200">
+                        <h3 id="roadmap-phase-title" class="text-2xl font-bold text-teal-600">Select a Phase</h3>
+                        <div id="roadmap-phase-content" class="mt-4 text-stone-600">
+                            <p>Click on a phase in the timeline above to see its detailed strategic priorities, including development principles, community building, and monetization models.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 5: Challenges & Mitigation -->
+        <section id="challenges" class="py-20 sm:py-28 bg-white">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center max-w-3xl mx-auto">
+                    <h2 class="text-3xl sm:text-4xl font-bold tracking-tight text-stone-800">Challenges & Mitigation</h2>
+                    <p class="mt-4 text-lg text-stone-600">
+                        An ambitious vision requires acknowledging significant hurdles. Here we outline the key challenges and the strategic approaches to overcome them.
+                    </p>
+                </div>
+                <div class="mt-12 max-w-4xl mx-auto">
+                    <div class="flex border-b border-stone-200">
+                        <button class="tab-button flex-1 py-3 px-1 text-center font-semibold text-teal-600 border-b-2 border-teal-600" data-tab="technical">Technical</button>
+                        <button class="tab-button flex-1 py-3 px-1 text-center font-semibold text-stone-500" data-tab="market">Market</button>
+                        <button class="tab-button flex-1 py-3 px-1 text-center font-semibold text-stone-500" data-tab="organizational">Organizational</button>
+                    </div>
+                    <div class="mt-8">
+                        <!-- Technical Tab Content -->
+                        <div id="technical-tab" class="tab-content space-y-4">
+                            <div class="accordion-item bg-stone-50 rounded-lg">
+                                <button class="accordion-header w-full p-5 text-left font-semibold flex justify-between items-center">
+                                    Universal Interoperability
+                                    <span class="transform transition-transform duration-300">▼</span>
+                                </button>
+                                <div class="accordion-content px-5 pb-5">
+                                    <strong class="text-teal-700">Challenge:</strong> Overcoming data silos, protocol incompatibility, and system heterogeneity across hundreds of tools.<br>
+                                    <strong class="text-teal-700">Mitigation:</strong> Champion open standards, provide a robust API/middleware strategy, and invest in semantic interoperability with shared ontologies.
+                                </div>
+                            </div>
+                            <div class="accordion-item bg-stone-50 rounded-lg">
+                                <button class="accordion-header w-full p-5 text-left font-semibold flex justify-between items-center">
+                                    Scalable AI & IIoT Infrastructure
+                                     <span class="transform transition-transform duration-300">▼</span>
+                                </button>
+                                <div class="accordion-content px-5 pb-5">
+                                    <strong class="text-teal-700">Challenge:</strong> Building and maintaining a resilient infrastructure for massive data volumes, complex AI workloads, and real-time edge control.<br>
+                                    <strong class="text-teal-700">Mitigation:</strong> Leverage scalable cloud architectures, distributed systems, and a data lakehouse. Use containerization (Kubernetes) for edge AI deployment and management.
+                                </div>
+                            </div>
+                            <div class="accordion-item bg-stone-50 rounded-lg">
+                                <button class="accordion-header w-full p-5 text-left font-semibold flex justify-between items-center">
+                                    Data Security & Privacy
+                                     <span class="transform transition-transform duration-300">▼</span>
+                                </button>
+                                <div class="accordion-content px-5 pb-5">
+                                    <strong class="text-teal-700">Challenge:</strong> Protecting sensitive engineering data across a vast, interconnected ecosystem, especially in government and industrial applications.<br>
+                                    <strong class="text-teal-700">Mitigation:</strong> Implement a "Trust Framework" with end-to-end encryption, robust data governance, clear IP policies, and Explainable AI (XAI) to ensure transparency and compliance.
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Market Tab Content -->
+                        <div id="market-tab" class="tab-content space-y-4 hidden">
+                            <div class="accordion-item bg-stone-50 rounded-lg">
+                                <button class="accordion-header w-full p-5 text-left font-semibold flex justify-between items-center">
+                                    Intense Competitive Landscape
+                                    <span class="transform transition-transform duration-300">▼</span>
+                                </button>
+                                <div class="accordion-content px-5 pb-5">
+                                    <strong class="text-teal-700">Challenge:</strong> Competing with established giants like Autodesk, Siemens, and PTC who are heavily invested in digital solutions.<br>
+                                    <strong class="text-teal-700">Mitigation:</strong> Differentiate by creating a new market category. Focus on being the universal, open "OS" that orchestrates other tools, rather than just another tool.
+                                </div>
+                            </div>
+                             <div class="accordion-item bg-stone-50 rounded-lg">
+                                <button class="accordion-header w-full p-5 text-left font-semibold flex justify-between items-center">
+                                    Customer & Developer Adoption
+                                    <span class="transform transition-transform duration-300">▼</span>
+                                </button>
+                                <div class="accordion-content px-5 pb-5">
+                                    <strong class="text-teal-700">Challenge:</strong> Overcoming high upfront IIoT investment costs for customers and attracting a critical mass of developers to the platform.<br>
+                                    <strong class="text-teal-700">Mitigation:</strong> Offer flexible SaaS/PaaS pricing models (pay-as-you-go) to lower entry barriers. Foster a thriving ecosystem with a dedicated developer relations program and transparent governance.
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Organizational Tab Content -->
+                        <div id="organizational-tab" class="tab-content space-y-4 hidden">
+                            <div class="accordion-item bg-stone-50 rounded-lg">
+                                <button class="accordion-header w-full p-5 text-left font-semibold flex justify-between items-center">
+                                    Internal Resistance & Silos
+                                    <span class="transform transition-transform duration-300">▼</span>
+                                </button>
+                                <div class="accordion-content px-5 pb-5">
+                                    <strong class="text-teal-700">Challenge:</strong> Overcoming internal resistance to change and breaking down departmental silos that hinder collaboration.<br>
+                                    <strong class="text-teal-700">Mitigation:</strong> Implement a comprehensive change management program and adopt a "platform-first" organizational structure with cross-functional teams and aligned incentives.
+                                </div>
+                            </div>
+                            <div class="accordion-item bg-stone-50 rounded-lg">
+                                <button class="accordion-header w-full p-5 text-left font-semibold flex justify-between items-center">
+                                    Talent Gap & Hyper-Growth
+                                    <span class="transform transition-transform duration-300">▼</span>
+                                </button>
+                                <div class="accordion-content px-5 pb-5">
+                                    <strong class="text-teal-700">Challenge:</strong> Sourcing scarce AI/IIoT talent and managing organizational structure effectively during rapid scaling.<br>
+                                    <strong class="text-teal-700">Mitigation:</strong> Invest in aggressive internal upskilling and academic partnerships. Leadership must be adept at frequent, well-communicated re-organizations to maintain agility.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-stone-800 text-white">
+        <div class="container mx-auto py-12 px-4 sm:px-6 lg:px-8 text-center">
+            <h3 class="text-2xl font-bold">Cuvisoft Engineering OS</h3>
+            <p class="mt-2 max-w-xl mx-auto text-stone-300">
+                Transforming the future of industrial, scientific, and civilizational progress.
+            </p>
+            <div class="mt-6 text-sm text-stone-400">
+                &copy; 2025 Cuvisoft. All Rights Reserved. This is a conceptual application based on the research framework.
+            </div>
+        </div>
+    </footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Mobile menu toggle
+    const mobileMenuButton = document.getElementById('mobile-menu-button');
+    const mobileMenu = document.getElementById('mobile-menu');
+    mobileMenuButton.addEventListener('click', () => {
+        mobileMenu.classList.toggle('hidden');
+    });
+
+    // Navigation link active state on scroll
+    const sections = document.querySelectorAll('section');
+    const navLinks = document.querySelectorAll('.nav-link');
+    window.onscroll = () => {
+        let current = '';
+        sections.forEach(section => {
+            const sectionTop = section.offsetTop;
+            if (pageYOffset >= sectionTop - 70) {
+                current = section.getAttribute('id');
+            }
+        });
+
+        navLinks.forEach(link => {
+            link.classList.remove('active');
+            if (link.getAttribute('href').includes(current)) {
+                link.classList.add('active');
+            }
+        });
+    };
+
+    // Hero Canvas Animation
+    const canvas = document.getElementById('hero-canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    let particlesArray;
+
+    const mouse = {
+        x: null,
+        y: null,
+        radius: (canvas.height/120) * (canvas.width/120)
+    };
+
+    window.addEventListener('mousemove', function(event) {
+        mouse.x = event.x;
+        mouse.y = event.y;
+    });
+
+    class Particle {
+        constructor(x, y, directionX, directionY, size, color) {
+            this.x = x;
+            this.y = y;
+            this.directionX = directionX;
+            this.directionY = directionY;
+            this.size = size;
+            this.color = color;
+        }
+        draw() {
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
+            ctx.fillStyle = '#A8A29E'; // stone-400
+            ctx.fill();
+        }
+        update() {
+            if (this.x > canvas.width || this.x < 0) {
+                this.directionX = -this.directionX;
+            }
+            if (this.y > canvas.height || this.y < 0) {
+                this.directionY = -this.directionY;
+            }
+            
+            let dx = mouse.x - this.x;
+            let dy = mouse.y - this.y;
+            let distance = Math.sqrt(dx*dx + dy*dy);
+            if (distance < mouse.radius + this.size){
+                if(mouse.x < this.x && this.x < canvas.width - this.size * 10){
+                    this.x += 5;
+                }
+                if(mouse.x > this.x && this.x > this.size * 10){
+                    this.x -= 5;
+                }
+                if(mouse.y < this.y && this.y < canvas.height - this.size * 10){
+                    this.y += 5;
+                }
+                if(mouse.y > this.y && this.y > this.size * 10){
+                    this.y -= 5;
+                }
+            }
+            this.x += this.directionX;
+            this.y += this.directionY;
+            this.draw();
+        }
+    }
+
+    function init() {
+        particlesArray = [];
+        let numberOfParticles = (canvas.height * canvas.width) / 9000;
+        for (let i = 0; i < numberOfParticles; i++) {
+            let size = (Math.random() * 2) + 1;
+            let x = (Math.random() * ((innerWidth - size * 2) - (size * 2)) + size * 2);
+            let y = (Math.random() * ((innerHeight - size * 2) - (size * 2)) + size * 2);
+            let directionX = (Math.random() * .4) - .2;
+            let directionY = (Math.random() * .4) - .2;
+            let color = '#A8A29E';
+            particlesArray.push(new Particle(x, y, directionX, directionY, size, color));
+        }
+    }
+
+    function connect() {
+        let opacityValue = 1;
+        for (let a = 0; a < particlesArray.length; a++) {
+            for (let b = a; b < particlesArray.length; b++) {
+                let distance = ((particlesArray[a].x - particlesArray[b].x) * (particlesArray[a].x - particlesArray[b].x)) +
+                               ((particlesArray[a].y - particlesArray[b].y) * (particlesArray[a].y - particlesArray[b].y));
+                if (distance < (canvas.width / 7) * (canvas.height / 7)) {
+                    opacityValue = 1 - (distance / 20000);
+                    ctx.strokeStyle = `rgba(168, 162, 158, ${opacityValue})`; // stone-400
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                    ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                    ctx.stroke();
+                }
+            }
+        }
+    }
+
+    function animate() {
+        requestAnimationFrame(animate);
+        ctx.clearRect(0, 0, innerWidth, innerHeight);
+
+        for (let i = 0; i < particlesArray.length; i++) {
+            particlesArray[i].update();
+        }
+        connect();
+    }
+    
+    window.addEventListener('resize', function(){
+        canvas.width = innerWidth;
+        canvas.height = innerHeight;
+        mouse.radius = ((canvas.height/120) * (canvas.width/120));
+        init();
+    });
+    
+    window.addEventListener('mouseout', function(){
+        mouse.x = undefined;
+        mouse.y = undefined;
+    });
+
+    init();
+    animate();
+
+    // Market Opportunity Chart
+    const marketData = {
+        labels: ['Engineering Software', 'Industrial IoT (IIoT)', 'Enterprise SaaS'],
+        datasets: [
+            {
+                label: 'Market Size 2025 (USD Bn)',
+                data: [51.9, 127.2, 408.2],
+                backgroundColor: 'rgba(20, 184, 166, 0.6)', // teal-500
+                borderColor: 'rgba(13, 148, 136, 1)', // teal-600
+                borderWidth: 1
+            },
+            {
+                label: 'Projected Market Size 2032/2034 (USD Bn)',
+                data: [246.5, 654.8, 1251.3],
+                backgroundColor: 'rgba(107, 114, 128, 0.6)', // gray-500
+                borderColor: 'rgba(75, 85, 99, 1)', // gray-600
+                borderWidth: 1
+            }
+        ]
+    };
+
+    const marketChartCtx = document.getElementById('marketChart').getContext('2d');
+    new Chart(marketChartCtx, {
+        type: 'bar',
+        data: marketData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Projected Market Growth (in Billion USD)',
+                    font: { size: 18 }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.parsed.y !== null) {
+                                label += new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(context.parsed.y) + ' Bn';
+                            }
+                            return label;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Market Size (USD Billions)'
+                    }
+                }
+            }
+        }
+    });
+
+    // Architecture Pillars Interaction
+    const pillarCards = document.querySelectorAll('.pillar-card');
+    const pillarTitle = document.getElementById('pillar-title');
+    const pillarDescription = document.getElementById('pillar-description');
+    const pillarData = {
+        interoperability: {
+            title: 'Universal Interoperability Engine',
+            description: 'The cornerstone of the OS, enabling seamless data and functionality exchange between all systems. It breaks down data silos using open standards, APIs, and middleware, fostering a connected ecosystem where the whole is greater than the sum of its parts.'
+        },
+        ai: {
+            title: 'AI-Powered Simulation & BI',
+            description: 'Integrates advanced AI to enhance every stage of the engineering lifecycle. AI-driven simulation accelerates design, while AI-powered Business Intelligence provides predictive insights from operational data, creating a powerful, self-optimizing feedback loop.'
+        },
+        iiot: {
+            title: 'IIoT Control Layer',
+            description: 'A foundational layer for real-time data collection, analysis, and control of physical assets. It leverages edge computing and 5G to enable low-latency, autonomous operations, forming a resilient backbone for smart industrial processes.'
+        },
+        suites: {
+            title: '100+ Integrated Domain-Specific Suites',
+            description: 'The vision includes integrating over 100 diverse engineering suites. This is achieved not just by internal development, but by fostering a thriving developer ecosystem to build specialized applications on the interoperable core platform.'
+        }
+    };
+    
+    pillarCards.forEach(card => {
+        card.addEventListener('click', () => {
+            const pillarKey = card.dataset.pillar;
+            pillarTitle.textContent = pillarData[pillarKey].title;
+            pillarDescription.textContent = pillarData[pillarKey].description;
+
+            pillarCards.forEach(c => c.classList.remove('ring-2', 'ring-teal-500'));
+            card.classList.add('ring-2', 'ring-teal-500');
+        });
+    });
+
+    // Roadmap Interaction
+    const roadmapItems = document.querySelectorAll('.roadmap-item');
+    const roadmapPhaseTitle = document.getElementById('roadmap-phase-title');
+    const roadmapPhaseContent = document.getElementById('roadmap-phase-content');
+    const roadmapData = {
+        mvp: {
+            title: 'Phase 1: MVP & Core Validation',
+            content: `
+                <p>The initial phase is not about building a feature-rich product, but about proving the core hypothesis of the Engineering OS. The MVP will focus on solving a single, high-value, cross-disciplinary problem to demonstrate the power of interoperability and intelligence.</p>
+                <ul class="list-disc list-inside mt-2 space-y-1">
+                    <li><strong>Focus:</strong> Deliver core value, not feature complexity.</li>
+                    <li><strong>Design:</strong> User-centric with rapid feedback loops.</li>
+                    <li><strong>Technology:</strong> Plan for scalability from day one to avoid technical debt.</li>
+                    <li><strong>Goal:</strong> Validate the compounding value thesis to attract early adopters and investment.</li>
+                </ul>
+            `
+        },
+        ecosystem: {
+            title: 'Phase 2: Ecosystem Cultivation',
+            content: `
+                <p>With the core concept validated, the focus shifts to scaling through a developer ecosystem. This phase is about co-creation and distributed innovation, empowering a global community to build the 100+ domain-specific suites.</p>
+                <ul class="list-disc list-inside mt-2 space-y-1">
+                    <li><strong>Strategy:</strong> Release open APIs and high-quality, well-documented SDKs.</li>
+                    <li><strong>Community:</strong> Actively engage developers through events, forums, and open-source leadership.</li>
+                    <li><strong>Governance:</strong> Establish a transparent, trustworthy governance model for API access and IP rights.</li>
+                    <li><strong>Goal:</strong> Accelerate platform growth and functionality far beyond internal capacity.</li>
+                </ul>
+            `
+        },
+        scale: {
+            title: 'Phase 3: Global Scale & Monetization',
+            content: `
+                <p>This phase focuses on achieving global market dominance and optimizing value capture. It involves strategic international expansion and implementing a multi-sided platform monetization model.</p>
+                <ul class="list-disc list-inside mt-2 space-y-1">
+                    <li><strong>Expansion:</strong> Enter new markets with deep understanding of local regulations and talent pools.</li>
+                    <li><strong>Monetization:</strong> Leverage subscription, usage-based, and revenue-sharing models.</li>
+                    <li><strong>Platform Economy:</strong> Capture value from both end-users and third-party developers, leveraging network effects.</li>
+                    <li><strong>Goal:</strong> Solidify the Engineering OS as a global standard and accelerate revenue towards the $1T target.</li>
+                </ul>
+            `
+        }
+    };
+
+    roadmapItems.forEach(item => {
+        item.addEventListener('click', () => {
+            const phaseKey = item.dataset.phase;
+            roadmapPhaseTitle.textContent = roadmapData[phaseKey].title;
+            roadmapPhaseContent.innerHTML = roadmapData[phaseKey].content;
+            
+            roadmapItems.forEach(i => i.querySelector('div:last-child').classList.remove('ring-2', 'ring-teal-500'));
+            item.querySelector('div:last-child').classList.add('ring-2', 'ring-teal-500');
+        });
+    });
+
+    // Challenges Tabs & Accordion
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const tabId = button.dataset.tab + '-tab';
+            
+            tabButtons.forEach(btn => {
+                btn.classList.remove('text-teal-600', 'border-teal-600');
+                btn.classList.add('text-stone-500');
+            });
+            button.classList.add('text-teal-600', 'border-teal-600');
+            button.classList.remove('text-stone-500');
+
+            tabContents.forEach(content => {
+                if (content.id === tabId) {
+                    content.classList.remove('hidden');
+                } else {
+                    content.classList.add('hidden');
+                }
+            });
+        });
+    });
+    
+    const accordionHeaders = document.querySelectorAll('.accordion-header');
+    accordionHeaders.forEach(header => {
+        header.addEventListener('click', () => {
+            const content = header.nextElementSibling;
+            const arrow = header.querySelector('span');
+
+            if (content.style.maxHeight) {
+                content.style.maxHeight = null;
+                arrow.style.transform = 'rotate(0deg)';
+            } else {
+                content.style.maxHeight = content.scrollHeight + 'px';
+                 arrow.style.transform = 'rotate(180deg)';
+            }
+        });
+    });
+});
+</script>
+
+</body>
+</html>
